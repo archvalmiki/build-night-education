@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import Head from 'expo-router/head';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,7 +8,7 @@ import { Fonts } from '@/constants/theme';
 
 const COLORS = {
   ice: '#EEF3F8', white: '#FFFFFF', ink: '#101A32', cobalt: '#3047F4',
-  coral: '#F2614B', mint: '#2DAA78', steel: '#66708A', line: '#CBD4E2',
+  coral: '#C94634', mint: '#2DAA78', steel: '#49566F', line: '#CBD4E2',
 };
 
 const tools = [
@@ -69,8 +70,10 @@ export default function HomeScreen() {
 
   if (finished) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.resultScreen}>
+      <>
+        <Head><title>Tool Router | Build Night Education</title></Head>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.resultScreen}>
           <Text style={styles.eyebrow}>TRAINING COMPLETE</Text>
           <View style={styles.resultNode}><Text style={styles.resultMark}>✓</Text></View>
           <Text style={styles.resultTitle}>Agent routed.</Text>
@@ -83,14 +86,17 @@ export default function HomeScreen() {
           <Pressable accessibilityRole="button" onPress={restartGame} style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}>
             <Text style={styles.primaryButtonText}>Train again</Text>
           </Pressable>
-        </View>
-      </SafeAreaView>
+          </View>
+        </SafeAreaView>
+      </>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
+    <>
+      <Head><title>Tool Router | Build Night Education</title></Head>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View><Text style={styles.eyebrow}>AGENT LAB / 001</Text><Text style={styles.brand}>Tool Router</Text></View>
           <View style={styles.scoreBlock}><Text style={styles.scoreValue}>{score}</Text><Text style={styles.scoreLabel}>POINTS</Text></View>
@@ -141,8 +147,9 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         )}
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 }
 
