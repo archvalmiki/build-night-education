@@ -6,17 +6,33 @@ experiment in developing a complete Expo app through conversation with an AI
 coding agent.
 
 - [Play Agent Ninja](https://agent-ninja.expo.app)
-- [View the Expo project](https://expo.dev/projects/242eeff7-04c0-4c90-a553-0c4c880ad162)
+- [View the public Expo project](https://expo.dev/projects/242eeff7-04c0-4c90-a553-0c4c880ad162)
 - [Browse the GitHub repository](https://github.com/archvalmiki/build-night-education)
 
-Scan this QR code with the iPhone Camera app to open the hosted game:
+## Play on a phone
+
+Friends can play without Expo Go and without the development laptop. Scan this
+QR code with the phone camera to open the hosted web release:
 
 <img src="docs/agent-ninja-web-qr.png" width="220"
   alt="QR code for the Agent Ninja web app.">
 
-The QR code opens the EAS Hosting production build. That build remains
-available when the development laptop is off. Expo Go testing uses a temporary
-Metro URL and requires the development machine to keep running.
+To keep Agent Ninja on an iPhone home screen, follow these steps:
+
+1. Open the QR code or [agent-ninja.expo.app](https://agent-ninja.expo.app) in
+   Safari.
+2. Tap **Share**.
+3. Tap **Add to Home Screen**, and then tap **Add**.
+
+This creates a home-screen shortcut to the hosted web game. The current public
+release is a web app, rather than an iOS App Store or TestFlight package. It
+requires internet access when it loads. High Scores stay in that browser on
+that device and can disappear if the player clears the browser's site data.
+
+Expo Go serves a different purpose. Developers use it to test the React Native
+source through a temporary Metro URL. That path requires the development
+machine and Metro server to keep running. Friends who only want to play should
+use the permanent web URL or QR code.
 
 This README follows the Google developer documentation style guide through a
 custom Google-style skill. It also goes through the custom slop-check skill
@@ -215,6 +231,8 @@ through the complete UI implementation.
 ## Project structure
 
 ```text
+.claude/settings.json   Enables the official Expo plugin for Claude Code
+.vscode/                Recommends Expo tools and sets editor save actions
 app/
   _layout.tsx            Root Expo Router layout
   (tabs)/index.tsx       Game screens, scoring, and local persistence
@@ -242,24 +260,32 @@ Expo app version and shows its first two parts.
 For each release, update the app and package versions, commit the release, add
 an annotated Git tag, and push the commit and tag to GitHub.
 
-## Run the app
+## Clone and run the app
 
-Node.js 20.19 or later is required by Expo SDK 54.
+To run a local copy, install Git, Node.js 20.19 or later, and npm. An Expo
+account is not required for local development.
 
-1. Install dependencies:
+1. Clone the repository and enter its directory:
+
+   ```sh
+   git clone https://github.com/archvalmiki/build-night-education.git
+   cd build-night-education
+   ```
+
+2. Install dependencies:
 
    ```sh
    npm install
    ```
 
-2. Start Metro:
+3. Start Metro:
 
    ```sh
-   npm start
+   npx expo start
    ```
 
-3. Use the terminal QR code to open the app in Expo Go, or press `w` to open
-   the web version.
+4. To test in a browser, press `W`. To test on an iPhone, install Expo Go and
+   scan the terminal QR code with the iPhone Camera app.
 
 If the phone and development machine cannot connect over the local network,
 start an Expo tunnel:
@@ -268,9 +294,48 @@ start an Expo tunnel:
 npx expo start --tunnel --go
 ```
 
-On iOS, scan the terminal QR code with the Camera app, then open the link in
-Expo Go. The development machine must remain running while the phone uses the
-Metro server.
+The Expo Go QR code is temporary. Keep the development machine and Metro
+server running while the phone uses it.
+
+### Connect a clone to another Expo account
+
+The committed `app.json` links this repository to the public Agent Ninja EAS
+project. A contributor can run the app locally without changing that link. To
+deploy a separate copy through another Expo account, follow these steps:
+
+1. In `app.json`, remove `expo.owner` and `expo.extra.eas.projectId`.
+2. Sign in to the other Expo account:
+
+   ```sh
+   npx eas-cli login
+   ```
+
+3. Create or link an EAS project for that account:
+
+   ```sh
+   npx eas-cli init
+   ```
+
+The `eas init` command writes the new public owner and project ID into the app
+configuration. For command options, see the
+[EAS CLI reference](https://docs.expo.dev/eas/cli/#eas-projectinit).
+
+## Public identifiers and private data
+
+The repository contains public project identifiers needed for links and EAS
+project association:
+
+- GitHub account and repository names in GitHub URLs.
+- Expo owner handle and EAS project UUID in `app.json`.
+- EAS project UUID in the public Expo project URL.
+- Hosted app name in `agent-ninja.expo.app`.
+
+These identifiers do not provide account access or deployment permission. The
+repository contains no passwords, authentication tokens, private keys, Apple
+signing certificates, provisioning profiles, or committed environment files.
+The `.gitignore` excludes local environment files and common signing-key
+formats. Keep future secrets in EAS environment variables or ignored local
+files, never in client code or `EXPO_PUBLIC_` variables.
 
 ## Check the project
 
