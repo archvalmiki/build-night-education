@@ -225,6 +225,22 @@ AGENTS.md                SDK 54 and testing handoff requirements
 app.json                 Expo and EAS project configuration
 ```
 
+## Versioning
+
+Git tags mark playable versions. The app uses a three-part version in
+`app.json`, `package.json`, and `package-lock.json`. The home screen reads the
+Expo app version and shows its first two parts.
+
+- [`v0.1`](https://github.com/archvalmiki/build-night-education/tree/v0.1)
+  marks the first complete Agent Ninja release. It introduced the cartoon
+  design and five tool-selection missions.
+- [`v0.2`](https://github.com/archvalmiki/build-night-education/tree/v0.2)
+  adds three levels, 10 missions, local High Scores, remembered names, the
+  one-screen menu, Help, the educational README, and production hosting.
+
+For each release, update the app and package versions, commit the release, add
+an annotated Git tag, and push the commit and tag to GitHub.
+
 ## Run the app
 
 Node.js 20.19 or later is required by Expo SDK 54.

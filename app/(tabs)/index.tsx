@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import Head from 'expo-router/head';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -23,6 +24,7 @@ const COLORS = {
 
 const PLAYER_KEY = '@agent-ninja/player';
 const SCORES_KEY = '@agent-ninja/high-scores';
+const DISPLAY_VERSION = `v${(Constants.expoConfig?.version ?? '0.2.0').split('.').slice(0, 2).join('.')}`;
 
 type Screen = 'home' | 'name' | 'help' | 'game' | 'level-up' | 'results' | 'scores';
 type ScoreEntry = { id: string; name: string; score: number; streak: number };
@@ -334,7 +336,10 @@ export default function HomeScreen() {
           <View style={[styles.cloud, styles.cloudOne]} />
           <View style={[styles.cloud, styles.cloudTwo]} />
           <View style={styles.homeTop}>
-            <View style={styles.logoPill}><Text style={styles.logoText}>AGENT NINJA</Text></View>
+            <View style={styles.brandGroup}>
+              <View style={styles.logoPill}><Text style={styles.logoText}>AGENT NINJA</Text></View>
+              <Text style={styles.versionText}>{DISPLAY_VERSION}</Text>
+            </View>
             <View style={styles.homeActions}>
               <Pressable accessibilityRole="button" onPress={() => setScreen('help')} style={styles.helpButton}><Text style={styles.helpButtonText}>? Help</Text></Pressable>
               <Pressable accessibilityLabel="High Scores" accessibilityRole="button" onPress={() => setScreen('scores')} style={styles.trophyButton}><Text style={styles.trophyButtonText}>🏆</Text></Pressable>
@@ -474,9 +479,11 @@ const styles = StyleSheet.create({
   cloudOne: { left: -48, top: 120, transform: [{ rotate: '-8deg' }] },
   cloudTwo: { right: -58, top: 310, transform: [{ rotate: '12deg' }] },
   homeTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  brandGroup: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   homeActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   logoPill: { backgroundColor: COLORS.white, borderRadius: 18, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 2, borderColor: COLORS.ink },
   logoText: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 12, fontWeight: '900', letterSpacing: 1 },
+  versionText: { color: COLORS.softInk, fontFamily: Fonts.rounded, fontSize: 10, fontWeight: '900' },
   scoresButton: { backgroundColor: COLORS.lemon, borderRadius: 18, borderWidth: 2, borderColor: COLORS.ink, paddingHorizontal: 12, paddingVertical: 8 },
   scoresButtonText: { color: COLORS.ink, fontFamily: Fonts.rounded, fontWeight: '900', fontSize: 12 },
   helpButton: { minHeight: 38, justifyContent: 'center', backgroundColor: COLORS.white, borderRadius: 18, borderWidth: 2, borderColor: COLORS.ink, paddingHorizontal: 12 },
