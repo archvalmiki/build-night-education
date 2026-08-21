@@ -11,7 +11,8 @@ coding agent.
 
 Scan this QR code with the iPhone Camera app to open the hosted game:
 
-![QR code for the Agent Ninja web app](docs/agent-ninja-web-qr.png)
+<img src="docs/agent-ninja-web-qr.png" width="220"
+  alt="QR code for the Agent Ninja web app.">
 
 The QR code opens the EAS Hosting production build. That build remains
 available when the development laptop is off. Expo Go testing uses a temporary
