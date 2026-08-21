@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "build-night-education",
-    "slug": "build-night-education",
+    "name": "Agent Ninja",
+    "slug": "agent-ninja",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "buildnighteducation",
+    "scheme": "agentninja",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -43,6 +43,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "242eeff7-04c0-4c90-a553-0c4c880ad162"
+      }
+    },
+    "owner": "valmiki-ops"
   }
 }

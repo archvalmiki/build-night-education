@@ -7,41 +7,96 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Fonts } from '@/constants/theme';
 
 const COLORS = {
-  ice: '#EEF3F8', white: '#FFFFFF', ink: '#101A32', cobalt: '#3047F4',
-  coral: '#C94634', mint: '#2DAA78', steel: '#49566F', line: '#CBD4E2',
+  sky: '#C9EEFF',
+  skyDark: '#73C7EC',
+  lemon: '#FFD85A',
+  grape: '#6654E8',
+  bubblegum: '#F65F9C',
+  mint: '#58D5A2',
+  peach: '#FFB47A',
+  cream: '#FFFDF5',
+  ink: '#26305B',
+  softInk: '#525C82',
+  white: '#FFFFFF',
+  lavender: '#EAE6FF',
 };
 
 const tools = [
-  { id: 'search', label: 'Web search', glyph: '⌕', detail: 'Find current facts' },
-  { id: 'memory', label: 'Memory', glyph: '◉', detail: 'Recall saved context' },
-  { id: 'calculator', label: 'Calculator', glyph: '÷', detail: 'Solve exact math' },
+  { id: 'search', label: 'Web search', icon: '🌎', detail: 'Look up fresh facts', color: COLORS.sky },
+  { id: 'memory', label: 'Memory', icon: '🧠', detail: 'Remember past clues', color: COLORS.lavender },
+  { id: 'calculator', label: 'Calculator', icon: '🧮', detail: 'Work out exact math', color: '#FFE4CF' },
 ] as const;
 
 type ToolId = (typeof tools)[number]['id'];
 
-const missions: { task: string; context: string; correctTool: ToolId }[] = [
-  { task: 'Find tomorrow’s weather in Chicago.', context: 'This answer changes every day.', correctTool: 'search' },
-  { task: 'Recall the player’s favorite color.', context: 'The player shared it in an earlier session.', correctTool: 'memory' },
-  { task: 'Calculate 18% of 240.', context: 'The answer must be exact.', correctTool: 'calculator' },
-  { task: 'Check who won yesterday’s game.', context: 'The result is recent information.', correctTool: 'search' },
-  { task: 'Recall where the player left off.', context: 'Progress was saved after the last round.', correctTool: 'memory' },
+const missions: { task: string; hint: string; correctTool: ToolId }[] = [
+  { task: 'What will the weather be tomorrow?', hint: 'Tomorrow’s forecast can change.', correctTool: 'search' },
+  { task: 'What is my favorite color?', hint: 'You told Pip earlier.', correctTool: 'memory' },
+  { task: 'What is 18% of 240?', hint: 'Pip needs an exact answer.', correctTool: 'calculator' },
+  { task: 'Who won yesterday’s game?', hint: 'Yesterday’s result is fresh news.', correctTool: 'search' },
+  { task: 'Where did I stop last time?', hint: 'Your progress was saved.', correctTool: 'memory' },
 ];
 
+function PageHead() {
+  return (
+    <Head>
+      <title>Agent Ninja</title>
+      <meta name="description" content="A playful game about how AI agents choose tools." />
+    </Head>
+  );
+}
+
+function PipCharacter({ small = false }: { small?: boolean }) {
+  return (
+    <View accessible accessibilityLabel="A friendly purple ninja robot" accessibilityRole="image" style={[styles.pip, small && styles.pipSmall]}>
+      <View style={[styles.antennaStem, small && styles.antennaStemSmall]} />
+      <View style={[styles.antennaDot, small && styles.antennaDotSmall]} />
+      <View style={[styles.pipEar, styles.pipEarLeft]} />
+      <View style={[styles.pipEar, styles.pipEarRight]} />
+      <View style={[styles.pipHead, small && styles.pipHeadSmall]}>
+        <View style={[styles.ninjaBand, small && styles.ninjaBandSmall]}>
+          <View style={[styles.ninjaBadge, small && styles.ninjaBadgeSmall]} />
+        </View>
+        <View style={styles.pipEyes}>
+          <View style={[styles.pipEye, small && styles.pipEyeSmall]} />
+          <View style={[styles.pipEye, small && styles.pipEyeSmall]} />
+        </View>
+        <View style={[styles.pipSmile, small && styles.pipSmileSmall]} />
+        {!small && <View style={styles.pipCheeks}><View style={styles.pipCheek} /><View style={styles.pipCheek} /></View>}
+      </View>
+      {!small && (
+        <>
+          <View style={styles.pipBody}><View style={styles.pipHeart}><Text style={styles.pipHeartText}>★</Text></View></View>
+          <View style={[styles.pipArm, styles.pipArmLeft]} />
+          <View style={[styles.pipArm, styles.pipArmRight]} />
+        </>
+      )}
+    </View>
+  );
+}
+
 export default function HomeScreen() {
+  const [started, setStarted] = useState(false);
   const [missionIndex, setMissionIndex] = useState(0);
   const [selectedTool, setSelectedTool] = useState<ToolId | null>(null);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   const [finished, setFinished] = useState(false);
+
   const mission = missions[missionIndex];
   const correct = selectedTool === mission.correctTool;
-  const progress = ((missionIndex + (selectedTool ? 1 : 0)) / missions.length) * 100;
+
+  function startGame() {
+    setStarted(true);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }
 
   function chooseTool(toolId: ToolId) {
     if (selectedTool) return;
     const isCorrect = toolId === mission.correctTool;
     setSelectedTool(toolId);
+
     if (isCorrect) {
       const nextStreak = streak + 1;
       setScore((current) => current + 100 + streak * 25);
@@ -64,28 +119,73 @@ export default function HomeScreen() {
   }
 
   function restartGame() {
-    setMissionIndex(0); setSelectedTool(null); setScore(0);
-    setStreak(0); setBestStreak(0); setFinished(false);
+    setMissionIndex(0);
+    setSelectedTool(null);
+    setScore(0);
+    setStreak(0);
+    setBestStreak(0);
+    setFinished(false);
+    setStarted(false);
+  }
+
+  if (!started) {
+    return (
+      <>
+        <PageHead />
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView contentContainerStyle={styles.startPage} showsVerticalScrollIndicator={false}>
+            <View style={[styles.cloud, styles.cloudOne]} />
+            <View style={[styles.cloud, styles.cloudTwo]} />
+            <View style={styles.logoPill}><Text style={styles.logoText}>AGENT NINJA</Text></View>
+            <View style={styles.heroBubble}>
+              <View style={styles.sparkleOne}><Text style={styles.sparkleText}>✦</Text></View>
+              <View style={styles.sparkleTwo}><Text style={styles.sparkleText}>★</Text></View>
+              <PipCharacter />
+            </View>
+            <Text style={styles.startTitle}>Train your Agent Ninja!</Text>
+            <Text style={styles.startCopy}>
+              AI agents solve jobs by choosing tools. Pick the best tool for each mission.
+            </Text>
+            <View style={styles.toolPreviewRow}>
+              {tools.map((tool) => (
+                <View key={tool.id} style={[styles.previewBubble, { backgroundColor: tool.color }]}>
+                  <Text style={styles.previewIcon}>{tool.icon}</Text>
+                </View>
+              ))}
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              onPress={startGame}
+              style={({ pressed }) => [styles.startButton, pressed && styles.buttonPressed]}>
+              <Text style={styles.startButtonText}>Start the quest</Text>
+              <Text style={styles.startButtonArrow}>→</Text>
+            </Pressable>
+            <Text style={styles.roundNote}>5 quick missions · about 2 minutes</Text>
+          </ScrollView>
+        </SafeAreaView>
+      </>
+    );
   }
 
   if (finished) {
     return (
       <>
-        <Head><title>Tool Router | Build Night Education</title></Head>
+        <PageHead />
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.resultScreen}>
-          <Text style={styles.eyebrow}>TRAINING COMPLETE</Text>
-          <View style={styles.resultNode}><Text style={styles.resultMark}>✓</Text></View>
-          <Text style={styles.resultTitle}>Agent routed.</Text>
-          <Text style={styles.resultCopy}>Tools give agents abilities. Good agents choose the right tool for each task.</Text>
-          <View style={styles.resultStats}>
-            <View style={styles.resultStat}><Text style={styles.resultValue}>{score}</Text><Text style={styles.resultLabel}>SCORE</Text></View>
-            <View style={styles.statDivider} />
-            <View style={styles.resultStat}><Text style={styles.resultValue}>{bestStreak}</Text><Text style={styles.resultLabel}>BEST STREAK</Text></View>
-          </View>
-          <Pressable accessibilityRole="button" onPress={restartGame} style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}>
-            <Text style={styles.primaryButtonText}>Train again</Text>
-          </Pressable>
+          <View style={styles.resultPage}>
+            <Text style={[styles.confetti, styles.confettiLeft]}>●  ✦</Text>
+            <Text style={[styles.confetti, styles.confettiRight]}>★  ●</Text>
+            <View style={styles.resultPipWrap}><PipCharacter /></View>
+            <Text style={styles.resultTitle}>Ninja rank unlocked!</Text>
+            <Text style={styles.resultCopy}>You chose tools like a real AI agent.</Text>
+            <View style={styles.scoreCard}>
+              <View style={styles.scoreItem}><Text style={styles.scoreBig}>{score}</Text><Text style={styles.scoreCaption}>points</Text></View>
+              <View style={styles.scoreDivider} />
+              <View style={styles.scoreItem}><Text style={styles.scoreBig}>{bestStreak}</Text><Text style={styles.scoreCaption}>best streak</Text></View>
+            </View>
+            <Pressable accessibilityRole="button" onPress={restartGame} style={({ pressed }) => [styles.playAgainButton, pressed && styles.buttonPressed]}>
+              <Text style={styles.playAgainText}>Play again</Text>
+            </Pressable>
           </View>
         </SafeAreaView>
       </>
@@ -94,88 +194,114 @@ export default function HomeScreen() {
 
   return (
     <>
-      <Head><title>Tool Router | Build Night Education</title></Head>
+      <PageHead />
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <View><Text style={styles.eyebrow}>AGENT LAB / 001</Text><Text style={styles.brand}>Tool Router</Text></View>
-          <View style={styles.scoreBlock}><Text style={styles.scoreValue}>{score}</Text><Text style={styles.scoreLabel}>POINTS</Text></View>
-        </View>
-        <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%` }]} /></View>
-        <View style={styles.progressLabels}>
-          <Text style={styles.utilityText}>MISSION {missionIndex + 1} / {missions.length}</Text>
-          <Text style={styles.utilityText}>STREAK {streak}</Text>
-        </View>
-        <View style={styles.missionCard}>
-          <View style={styles.agentRow}>
-            <View style={styles.agentNode}><View style={styles.agentEye} /><View style={styles.agentEye} /></View>
-            <View><Text style={styles.nodeLabel}>AGENT RECEIVED TASK</Text><Text style={styles.nodeStatus}>Awaiting route</Text></View>
+        <ScrollView contentContainerStyle={styles.gamePage} showsVerticalScrollIndicator={false}>
+          <View style={styles.gameHeader}>
+            <View><Text style={styles.gameBrand}>Agent Ninja</Text><Text style={styles.levelText}>Mission {missionIndex + 1} of {missions.length}</Text></View>
+            <View style={styles.pointsPill}><Text style={styles.pointsStar}>★</Text><Text style={styles.pointsText}>{score}</Text></View>
           </View>
-          <Text style={styles.missionText}>{mission.task}</Text>
-          <Text style={styles.missionContext}>{mission.context}</Text>
-        </View>
-        <View style={styles.bus}><View style={styles.busStem} /><View style={styles.busLine} /><View style={styles.busDot} /></View>
-        <Text style={styles.prompt}>Choose a tool</Text>
-        <View style={styles.toolList}>
-          {tools.map((tool) => {
-            const isSelected = selectedTool === tool.id;
-            const isAnswer = selectedTool !== null && tool.id === mission.correctTool;
-            const isWrong = isSelected && !isAnswer;
-            return (
-              <Pressable
-                accessibilityLabel={`${tool.label}. ${tool.detail}`}
-                accessibilityRole="button"
-                disabled={selectedTool !== null}
-                key={tool.id}
-                onPress={() => chooseTool(tool.id)}
-                style={({ pressed }) => [styles.toolCard, pressed && styles.toolPressed, isAnswer && styles.toolCorrect, isWrong && styles.toolWrong]}>
-                <View style={styles.toolGlyphBox}><Text style={styles.toolGlyph}>{tool.glyph}</Text></View>
-                <View style={styles.toolCopy}><Text style={styles.toolLabel}>{tool.label}</Text><Text style={styles.toolDetail}>{tool.detail}</Text></View>
-                <Text style={styles.toolArrow}>{isAnswer ? '✓' : isWrong ? '×' : '→'}</Text>
+          <View accessibilityLabel={`${missionIndex + (selectedTool ? 1 : 0)} of ${missions.length} missions complete`} style={styles.dotsRow}>
+            {missions.map((_, index) => <View key={index} style={[styles.progressDot, index < missionIndex + (selectedTool ? 1 : 0) && styles.progressDotDone]} />)}
+          </View>
+          <View style={styles.missionBubble}>
+            <View style={styles.miniPipWrap}><PipCharacter small /></View>
+            <View style={styles.speechCopy}>
+              <Text style={styles.pipSays}>Your ninja asks:</Text>
+              <Text style={styles.missionText}>{mission.task}</Text>
+              <Text style={styles.missionHint}>{mission.hint}</Text>
+            </View>
+          </View>
+          <Text style={styles.chooseTitle}>Which tool should Agent Ninja use?</Text>
+          <View style={styles.toolList}>
+            {tools.map((tool) => {
+              const isSelected = selectedTool === tool.id;
+              const isAnswer = selectedTool !== null && tool.id === mission.correctTool;
+              const isWrong = isSelected && !isAnswer;
+              return (
+                <Pressable
+                  accessibilityLabel={`${tool.label}. ${tool.detail}`}
+                  accessibilityRole="button"
+                  disabled={selectedTool !== null}
+                  key={tool.id}
+                  onPress={() => chooseTool(tool.id)}
+                  style={({ pressed }) => [styles.toolCard, { backgroundColor: tool.color }, pressed && styles.toolPressed, isAnswer && styles.toolCorrect, isWrong && styles.toolWrong]}>
+                  <View style={styles.iconBubble}><Text style={styles.toolIcon}>{tool.icon}</Text></View>
+                  <View style={styles.toolCopy}><Text style={styles.toolLabel}>{tool.label}</Text><Text style={styles.toolDetail}>{tool.detail}</Text></View>
+                  <View style={[styles.choiceMark, isAnswer && styles.choiceMarkCorrect, isWrong && styles.choiceMarkWrong]}>
+                    <Text style={styles.choiceMarkText}>{isAnswer ? '✓' : isWrong ? '×' : '›'}</Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+          {selectedTool && (
+            <View style={[styles.feedbackCard, correct ? styles.feedbackCorrect : styles.feedbackWrong]}>
+              <Text style={styles.feedbackEmoji}>{correct ? '🎉' : '💡'}</Text>
+              <View style={styles.feedbackWords}>
+                <Text style={styles.feedbackTitle}>{correct ? 'Great choice!' : 'Good try!'}</Text>
+                <Text style={styles.feedbackCopy}>
+                  {correct ? `${tools.find((tool) => tool.id === mission.correctTool)?.label} fits this mission.` : `Your ninja needs ${tools.find((tool) => tool.id === mission.correctTool)?.label.toLowerCase()} this time.`}
+                </Text>
+              </View>
+              <Pressable accessibilityRole="button" onPress={continueGame} style={({ pressed }) => [styles.nextButton, pressed && styles.buttonPressed]}>
+                <Text style={styles.nextButtonText}>{missionIndex === missions.length - 1 ? 'See my score' : 'Next'}</Text>
               </Pressable>
-            );
-          })}
-        </View>
-        {selectedTool && (
-          <View style={[styles.feedback, correct ? styles.feedbackCorrect : styles.feedbackWrong]}>
-            <Text style={styles.feedbackTitle}>{correct ? 'Route accepted' : 'Route corrected'}</Text>
-            <Text style={styles.feedbackCopy}>
-              {correct ? `Right. ${mission.context}` : `Use ${tools.find((tool) => tool.id === mission.correctTool)?.label.toLowerCase()}. ${mission.context}`}
-            </Text>
-            <Pressable accessibilityRole="button" onPress={continueGame} style={({ pressed }) => [styles.continueButton, pressed && styles.buttonPressed]}>
-              <Text style={styles.continueText}>{missionIndex === missions.length - 1 ? 'View results' : 'Next mission'}</Text>
-            </Pressable>
-          </View>
-        )}
+            </View>
+          )}
+          <Text style={styles.streakText}>🔥 {streak} answer streak</Text>
         </ScrollView>
       </SafeAreaView>
     </>
   );
 }
 
+const shadow = { boxShadow: '0 5px 0 rgba(38, 48, 91, 0.14)' };
+
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: COLORS.ice },
-  page: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 40 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  eyebrow: { color: COLORS.cobalt, fontFamily: Fonts.mono, fontSize: 11, fontWeight: '700', letterSpacing: 1.4 },
-  brand: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 30, fontWeight: '800', letterSpacing: -1.2, marginTop: 2 },
-  scoreBlock: { alignItems: 'flex-end' }, scoreValue: { color: COLORS.ink, fontFamily: Fonts.mono, fontSize: 24, fontWeight: '700' },
-  scoreLabel: { color: COLORS.steel, fontFamily: Fonts.mono, fontSize: 9, letterSpacing: 1.2 },
-  progressTrack: { height: 6, backgroundColor: COLORS.line, marginTop: 22, overflow: 'hidden' }, progressFill: { height: '100%', backgroundColor: COLORS.cobalt },
-  progressLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 7 }, utilityText: { color: COLORS.steel, fontFamily: Fonts.mono, fontSize: 10, fontWeight: '600', letterSpacing: 0.7 },
-  missionCard: { backgroundColor: COLORS.ink, marginTop: 22, padding: 20, minHeight: 210, borderRadius: 4 },
-  agentRow: { flexDirection: 'row', alignItems: 'center', gap: 12 }, agentNode: { width: 42, height: 42, borderRadius: 21, borderWidth: 2, borderColor: COLORS.ice, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  agentEye: { width: 5, height: 5, borderRadius: 3, backgroundColor: COLORS.coral }, nodeLabel: { color: COLORS.ice, fontFamily: Fonts.mono, fontSize: 9, fontWeight: '700', letterSpacing: 1 },
-  nodeStatus: { color: '#9FAAC1', fontFamily: Fonts.sans, fontSize: 13, marginTop: 2 }, missionText: { color: COLORS.white, fontFamily: Fonts.rounded, fontSize: 27, fontWeight: '700', lineHeight: 33, letterSpacing: -0.5, marginTop: 24 },
-  missionContext: { color: '#B9C2D3', fontFamily: Fonts.sans, fontSize: 14, lineHeight: 20, marginTop: 12 },
-  bus: { height: 38, alignItems: 'center' }, busStem: { width: 2, height: 21, backgroundColor: COLORS.cobalt }, busLine: { position: 'absolute', top: 20, left: 28, right: 28, height: 2, backgroundColor: COLORS.cobalt }, busDot: { position: 'absolute', top: 16, width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.cobalt },
-  prompt: { color: COLORS.ink, fontFamily: Fonts.mono, fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10 }, toolList: { gap: 10 },
-  toolCard: { backgroundColor: COLORS.white, borderWidth: 2, borderColor: 'transparent', borderRadius: 4, minHeight: 72, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center' }, toolPressed: { transform: [{ scale: 0.985 }] },
-  toolCorrect: { borderColor: COLORS.mint, backgroundColor: '#EAF8F2' }, toolWrong: { borderColor: COLORS.coral, backgroundColor: '#FFF0ED' }, toolGlyphBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.ice, alignItems: 'center', justifyContent: 'center' },
-  toolGlyph: { color: COLORS.cobalt, fontFamily: Fonts.mono, fontSize: 22, fontWeight: '700' }, toolCopy: { flex: 1, marginLeft: 13 }, toolLabel: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 17, fontWeight: '700' }, toolDetail: { color: COLORS.steel, fontFamily: Fonts.sans, fontSize: 12, marginTop: 2 }, toolArrow: { color: COLORS.ink, fontFamily: Fonts.mono, fontSize: 22, fontWeight: '700' },
-  feedback: { borderRadius: 4, marginTop: 16, padding: 16 }, feedbackCorrect: { backgroundColor: '#DDF4E9' }, feedbackWrong: { backgroundColor: '#FFE5DF' }, feedbackTitle: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 18, fontWeight: '800' }, feedbackCopy: { color: COLORS.ink, fontFamily: Fonts.sans, fontSize: 14, lineHeight: 20, marginTop: 4 },
-  continueButton: { backgroundColor: COLORS.ink, minHeight: 48, borderRadius: 3, marginTop: 14, alignItems: 'center', justifyContent: 'center' }, continueText: { color: COLORS.white, fontFamily: Fonts.mono, fontSize: 12, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' }, buttonPressed: { opacity: 0.82 },
-  resultScreen: { flex: 1, paddingHorizontal: 28, justifyContent: 'center', alignItems: 'center' }, resultNode: { width: 82, height: 82, borderRadius: 41, backgroundColor: COLORS.cobalt, alignItems: 'center', justifyContent: 'center', marginTop: 24 }, resultMark: { color: COLORS.white, fontFamily: Fonts.mono, fontSize: 38, fontWeight: '700' }, resultTitle: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 36, fontWeight: '800', letterSpacing: -1.4, marginTop: 20 },
-  resultCopy: { color: COLORS.steel, fontFamily: Fonts.sans, fontSize: 16, lineHeight: 24, textAlign: 'center', maxWidth: 330, marginTop: 12 }, resultStats: { flexDirection: 'row', alignItems: 'center', marginVertical: 30 }, resultStat: { minWidth: 110, alignItems: 'center' }, statDivider: { width: 1, height: 42, backgroundColor: COLORS.line }, resultValue: { color: COLORS.ink, fontFamily: Fonts.mono, fontSize: 26, fontWeight: '700' }, resultLabel: { color: COLORS.steel, fontFamily: Fonts.mono, fontSize: 9, letterSpacing: 1, marginTop: 4 },
-  primaryButton: { backgroundColor: COLORS.coral, borderRadius: 3, minHeight: 54, width: '100%', maxWidth: 330, alignItems: 'center', justifyContent: 'center' }, primaryButtonText: { color: COLORS.white, fontFamily: Fonts.mono, fontSize: 13, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
+  safeArea: { flex: 1, backgroundColor: COLORS.sky },
+  startPage: { flexGrow: 1, alignItems: 'center', paddingHorizontal: 24, paddingTop: 14, paddingBottom: 28, overflow: 'hidden' },
+  cloud: { position: 'absolute', width: 120, height: 44, borderRadius: 30, backgroundColor: 'rgba(255,255,255,0.62)' },
+  cloudOne: { left: -34, top: 72, transform: [{ rotate: '-8deg' }] }, cloudTwo: { right: -50, top: 185, transform: [{ rotate: '12deg' }] },
+  logoPill: { backgroundColor: COLORS.white, borderRadius: 18, paddingHorizontal: 16, paddingVertical: 8, borderWidth: 2, borderColor: COLORS.ink },
+  logoText: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 12, fontWeight: '900', letterSpacing: 1 },
+  heroBubble: { width: 230, height: 230, borderRadius: 115, backgroundColor: COLORS.lemon, alignItems: 'center', justifyContent: 'center', marginTop: 24, borderWidth: 3, borderColor: COLORS.ink, ...shadow },
+  sparkleOne: { position: 'absolute', left: 18, top: 52 }, sparkleTwo: { position: 'absolute', right: 20, top: 26 }, sparkleText: { color: COLORS.bubblegum, fontSize: 27, fontWeight: '900' },
+  pip: { width: 164, height: 174, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 20 }, pipSmall: { width: 68, height: 68, paddingTop: 10 },
+  antennaStem: { width: 5, height: 24, borderRadius: 3, backgroundColor: COLORS.ink, position: 'absolute', top: 2 }, antennaStemSmall: { width: 3, height: 12, top: 0 },
+  antennaDot: { width: 17, height: 17, borderRadius: 9, backgroundColor: COLORS.bubblegum, borderWidth: 3, borderColor: COLORS.ink, position: 'absolute', top: -6 }, antennaDotSmall: { width: 9, height: 9, borderWidth: 2, top: -3 },
+  pipEar: { position: 'absolute', top: 49, width: 19, height: 39, borderRadius: 10, backgroundColor: COLORS.bubblegum, borderWidth: 3, borderColor: COLORS.ink }, pipEarLeft: { left: 2 }, pipEarRight: { right: 2 },
+  pipHead: { width: 140, height: 91, borderRadius: 34, backgroundColor: COLORS.white, borderWidth: 4, borderColor: COLORS.ink, alignItems: 'center', paddingTop: 25, zIndex: 2 }, pipHeadSmall: { width: 58, height: 45, borderRadius: 17, borderWidth: 3, paddingTop: 12 },
+  ninjaBand: { position: 'absolute', left: 0, right: 0, top: 10, height: 15, backgroundColor: COLORS.grape, alignItems: 'center', justifyContent: 'center' }, ninjaBandSmall: { top: 4, height: 8 },
+  ninjaBadge: { width: 17, height: 17, borderRadius: 9, backgroundColor: COLORS.lemon, borderWidth: 2, borderColor: COLORS.ink }, ninjaBadgeSmall: { width: 9, height: 9, borderWidth: 1 },
+  pipEyes: { flexDirection: 'row', gap: 31 }, pipEye: { width: 13, height: 19, borderRadius: 8, backgroundColor: COLORS.ink }, pipEyeSmall: { width: 6, height: 9 },
+  pipSmile: { width: 30, height: 13, borderBottomWidth: 4, borderBottomColor: COLORS.ink, borderRadius: 15, marginTop: 4 }, pipSmileSmall: { width: 15, height: 7, borderBottomWidth: 2, marginTop: 1 },
+  pipCheeks: { position: 'absolute', left: 15, right: 15, top: 57, flexDirection: 'row', justifyContent: 'space-between' }, pipCheek: { width: 13, height: 7, borderRadius: 7, backgroundColor: '#FF9FC4' },
+  pipBody: { width: 88, height: 65, borderRadius: 24, backgroundColor: COLORS.grape, borderWidth: 4, borderColor: COLORS.ink, marginTop: -3, alignItems: 'center', paddingTop: 12 },
+  pipHeart: { width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.lemon, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: COLORS.ink }, pipHeartText: { color: COLORS.bubblegum, fontSize: 18, fontWeight: '900' },
+  pipArm: { position: 'absolute', top: 115, width: 44, height: 16, borderRadius: 10, backgroundColor: COLORS.grape, borderWidth: 3, borderColor: COLORS.ink }, pipArmLeft: { left: 11, transform: [{ rotate: '24deg' }] }, pipArmRight: { right: 11, transform: [{ rotate: '-24deg' }] },
+  startTitle: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 40, lineHeight: 44, fontWeight: '900', letterSpacing: -1.5, marginTop: 24, textAlign: 'center' },
+  startCopy: { color: COLORS.softInk, fontFamily: Fonts.rounded, fontSize: 17, lineHeight: 24, fontWeight: '600', textAlign: 'center', maxWidth: 340, marginTop: 10 },
+  toolPreviewRow: { flexDirection: 'row', gap: 10, marginTop: 18 }, previewBubble: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: COLORS.ink }, previewIcon: { fontSize: 24 },
+  startButton: { width: '100%', maxWidth: 350, minHeight: 62, borderRadius: 22, backgroundColor: COLORS.bubblegum, borderWidth: 3, borderColor: COLORS.ink, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 20, ...shadow },
+  startButtonText: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 20, fontWeight: '900' }, startButtonArrow: { color: COLORS.ink, fontSize: 27, fontWeight: '900', marginLeft: 12 }, buttonPressed: { transform: [{ translateY: 3 }] },
+  roundNote: { color: COLORS.softInk, fontFamily: Fonts.rounded, fontSize: 12, fontWeight: '700', marginTop: 12 },
+  gamePage: { flexGrow: 1, backgroundColor: COLORS.cream, paddingHorizontal: 18, paddingTop: 12, paddingBottom: 30 },
+  gameHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, gameBrand: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 22, fontWeight: '900' }, levelText: { color: COLORS.softInk, fontFamily: Fonts.rounded, fontSize: 13, fontWeight: '700', marginTop: 2 },
+  pointsPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.lemon, borderWidth: 2, borderColor: COLORS.ink, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 7 }, pointsStar: { color: COLORS.bubblegum, fontSize: 17 }, pointsText: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 15, fontWeight: '900', marginLeft: 5 },
+  dotsRow: { flexDirection: 'row', gap: 7, marginTop: 15 }, progressDot: { flex: 1, height: 8, borderRadius: 4, backgroundColor: '#DDD9EE' }, progressDotDone: { backgroundColor: COLORS.grape },
+  missionBubble: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.lemon, borderRadius: 28, borderWidth: 3, borderColor: COLORS.ink, padding: 16, marginTop: 18, ...shadow },
+  miniPipWrap: { width: 76, height: 76, borderRadius: 38, backgroundColor: COLORS.white, alignItems: 'center', justifyContent: 'center', marginRight: 13, overflow: 'hidden' }, speechCopy: { flex: 1 }, pipSays: { color: COLORS.grape, fontFamily: Fonts.rounded, fontSize: 13, fontWeight: '900' },
+  missionText: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 21, lineHeight: 25, fontWeight: '900', marginTop: 3 }, missionHint: { color: COLORS.softInk, fontFamily: Fonts.rounded, fontSize: 12, lineHeight: 17, fontWeight: '600', marginTop: 6 },
+  chooseTitle: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 19, fontWeight: '900', marginTop: 24, marginBottom: 11 }, toolList: { gap: 11 },
+  toolCard: { minHeight: 76, borderRadius: 22, borderWidth: 3, borderColor: COLORS.ink, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', ...shadow }, toolPressed: { transform: [{ translateY: 3 }] }, toolCorrect: { borderColor: '#187A57', borderWidth: 4 }, toolWrong: { borderColor: '#B52D57', borderWidth: 4 },
+  iconBubble: { width: 52, height: 52, borderRadius: 26, backgroundColor: COLORS.white, borderWidth: 2, borderColor: COLORS.ink, alignItems: 'center', justifyContent: 'center' }, toolIcon: { fontSize: 28 }, toolCopy: { flex: 1, marginLeft: 12 }, toolLabel: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 17, fontWeight: '900' }, toolDetail: { color: COLORS.softInk, fontFamily: Fonts.rounded, fontSize: 12, fontWeight: '600', marginTop: 2 },
+  choiceMark: { width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.white, borderWidth: 2, borderColor: COLORS.ink, alignItems: 'center', justifyContent: 'center' }, choiceMarkCorrect: { backgroundColor: COLORS.mint }, choiceMarkWrong: { backgroundColor: '#FF9CB8' }, choiceMarkText: { color: COLORS.ink, fontSize: 23, lineHeight: 25, fontWeight: '900' },
+  feedbackCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 22, borderWidth: 3, borderColor: COLORS.ink, padding: 12, marginTop: 16 }, feedbackCorrect: { backgroundColor: '#D7F8E9' }, feedbackWrong: { backgroundColor: '#FFE0EB' }, feedbackEmoji: { fontSize: 28 }, feedbackWords: { flex: 1, marginLeft: 9 }, feedbackTitle: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 16, fontWeight: '900' }, feedbackCopy: { color: COLORS.softInk, fontFamily: Fonts.rounded, fontSize: 11, lineHeight: 15, fontWeight: '600', marginTop: 2 },
+  nextButton: { backgroundColor: COLORS.grape, minWidth: 76, minHeight: 44, borderRadius: 16, borderWidth: 2, borderColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 }, nextButtonText: { color: COLORS.white, fontFamily: Fonts.rounded, fontSize: 13, fontWeight: '900' }, streakText: { color: COLORS.softInk, fontFamily: Fonts.rounded, fontSize: 13, fontWeight: '800', textAlign: 'center', marginTop: 16 },
+  resultPage: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, overflow: 'hidden' }, resultPipWrap: { width: 230, height: 230, borderRadius: 115, backgroundColor: COLORS.lemon, borderWidth: 3, borderColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', ...shadow },
+  confetti: { position: 'absolute', color: COLORS.bubblegum, fontSize: 25, fontWeight: '900' }, confettiLeft: { left: 22, top: 90, transform: [{ rotate: '-18deg' }] }, confettiRight: { right: 20, top: 120, color: COLORS.grape, transform: [{ rotate: '17deg' }] },
+  resultTitle: { color: COLORS.ink, fontFamily: Fonts.rounded, fontSize: 35, fontWeight: '900', letterSpacing: -1, marginTop: 24, textAlign: 'center' }, resultCopy: { color: COLORS.softInk, fontFamily: Fonts.rounded, fontSize: 16, lineHeight: 22, fontWeight: '600', textAlign: 'center', maxWidth: 330, marginTop: 8 },
+  scoreCard: { width: '100%', maxWidth: 330, flexDirection: 'row', backgroundColor: COLORS.white, borderWidth: 3, borderColor: COLORS.ink, borderRadius: 22, paddingVertical: 14, marginTop: 20, ...shadow }, scoreItem: { flex: 1, alignItems: 'center' }, scoreDivider: { width: 2, backgroundColor: '#D9D5E9' }, scoreBig: { color: COLORS.grape, fontFamily: Fonts.rounded, fontSize: 25, fontWeight: '900' }, scoreCaption: { color: COLORS.softInk, fontFamily: Fonts.rounded, fontSize: 11, fontWeight: '700' },
+  playAgainButton: { width: '100%', maxWidth: 330, minHeight: 58, borderRadius: 20, backgroundColor: COLORS.bubblegum, borderWidth: 3, borderColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', marginTop: 20, ...shadow }, playAgainText: { color: COLORS.white, fontFamily: Fonts.rounded, fontSize: 18, fontWeight: '900' },
 });
